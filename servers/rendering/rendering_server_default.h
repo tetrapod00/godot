@@ -680,9 +680,6 @@ public:
 	FUNC2(viewport_set_vrs_update_mode, RID, ViewportVRSUpdateMode)
 	FUNC2(viewport_set_vrs_texture, RID, RID)
 
-	FUNC2(viewport_set_material_override, RID, RID)
-
-
 	/* COMPOSITOR EFFECT */
 
 #undef server_name

@@ -93,8 +93,6 @@ public:
 		bool disable_3d = false;
 		bool measure_render_time = false;
 
-		RID material_override;
-
 		bool snap_2d_transforms_to_pixel = false;
 		bool snap_2d_vertices_to_pixel = false;
 
@@ -304,8 +302,6 @@ public:
 	void viewport_set_vrs_mode(RID p_viewport, RS::ViewportVRSMode p_mode);
 	void viewport_set_vrs_update_mode(RID p_viewport, RS::ViewportVRSUpdateMode p_mode);
 	void viewport_set_vrs_texture(RID p_viewport, RID p_texture);
-
-	void viewport_set_material_override(RID p_viewport, RID p_material);
 
 	void handle_timestamp(String p_timestamp, uint64_t p_cpu_time, uint64_t p_gpu_time);
 

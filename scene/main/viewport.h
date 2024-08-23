@@ -281,7 +281,6 @@ private:
 
 	bool disable_3d = false;
 
-
 	void _propagate_viewport_notification(Node *p_node, int p_what);
 
 	void _update_global_transform();
@@ -475,8 +474,6 @@ private:
 
 	void _process_dirty_canvas_parent_orders();
 	void _propagate_world_2d_changed(Node *p_node);
-
-	Ref<Material> material_override;
 
 protected:
 	bool _set_size(const Size2i &p_size, const Size2i &p_size_2d_override, bool p_allocated);
@@ -709,9 +706,6 @@ public:
 
 	Camera2D *get_camera_2d() const;
 	void assign_next_enabled_camera_2d(const StringName &p_camera_group);
-
-	void set_material_override(const Ref<Material> &p_material);
-	Ref<Material> get_material_override() const;
 
 #ifndef _3D_DISABLED
 private:

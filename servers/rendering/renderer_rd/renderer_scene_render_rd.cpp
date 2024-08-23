@@ -1208,8 +1208,6 @@ void RendererSceneRenderRD::render_scene(const Ref<RenderSceneBuffers> &p_render
 		render_data.render_sdfgi_region_count = p_render_sdfgi_region_count;
 		render_data.sdfgi_update_data = p_sdfgi_update_data;
 
-		//render_data.material_override = p_viewport.material_override;
-
 		render_data.render_info = r_render_info;
 
 		if (p_render_buffers.is_valid() && p_reflection_probe.is_null()) {

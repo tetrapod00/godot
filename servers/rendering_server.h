@@ -947,8 +947,6 @@ public:
 	virtual void viewport_set_global_canvas_transform(RID p_viewport, const Transform2D &p_transform) = 0;
 	virtual void viewport_set_canvas_stacking(RID p_viewport, RID p_canvas, int p_layer, int p_sublayer) = 0;
 
-	virtual void viewport_set_material_override(RID p_instance, RID p_material) = 0;
-
 	enum ViewportSDFOversize {
 		VIEWPORT_SDF_OVERSIZE_100_PERCENT,
 		VIEWPORT_SDF_OVERSIZE_120_PERCENT,
