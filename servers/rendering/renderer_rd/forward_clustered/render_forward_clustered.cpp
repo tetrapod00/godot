@@ -291,6 +291,27 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 
 	SceneState::PushConstant push_constant;
 
+	RID override_material_rid = p_params->material_override;
+	bool has_override = override_material_rid != RID();
+
+	RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
+	SceneShaderForwardClustered::ShaderData *override_shader = nullptr;
+	RID override_material_uniform_set = RID();
+	//SceneShaderForwardClustered::MaterialData *override_material = nullptr;
+	if (has_override) {
+		// 	RID override_material_rid = RID();
+		// 	//override_material *material = nullptr;
+		// 	//override_material_uniform_set = RID();
+
+		SceneShaderForwardClustered::MaterialData *md = static_cast<SceneShaderForwardClustered::MaterialData *>(material_storage->material_get_data(override_material_rid, RendererRD::MaterialStorage::SHADER_TYPE_3D));
+		if (!md || !md->shader_data->valid) {
+			has_override = false;
+		} else {
+			override_shader = md->shader_data;
+			override_material_uniform_set = md->uniform_set;
+		}
+	}
+
 	if constexpr (p_pass_mode == PASS_MODE_DEPTH_MATERIAL) {
 		push_constant.uv_offset = Math::make_half_float(p_params->uv_offset.y) << 16;
 		push_constant.uv_offset |= Math::make_half_float(p_params->uv_offset.x);
@@ -338,9 +359,9 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 				shader = scene_shader.debug_shadow_splits_material_shader_ptr;
 			} else {
 #endif
-				bool has_override = false;
 				if (has_override) {
-					
+					material_uniform_set = override_material_uniform_set;
+					shader = override_shader;
 				} else {
 					material_uniform_set = surf->material_uniform_set;
 					shader = surf->shader;
@@ -1608,6 +1629,8 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	bool ce_needs_normal_roughness = _compositor_effects_has_flag(p_render_data, RS::COMPOSITOR_EFFECT_FLAG_NEEDS_ROUGHNESS);
 	bool ce_needs_separate_specular = _compositor_effects_has_flag(p_render_data, RS::COMPOSITOR_EFFECT_FLAG_NEEDS_SEPARATE_SPECULAR);
 
+	RID env_override_material = p_render_data->environment.is_valid() ? environment_get_material_override(p_render_data->environment) : RID();
+
 	// sdfgi first
 	_update_sdfgi(p_render_data);
 
@@ -2038,7 +2061,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 			uint32_t opaque_color_pass_flags = using_motion_pass ? (color_pass_flags & ~COLOR_PASS_FLAG_MOTION_VECTORS) : color_pass_flags;
 			RID opaque_framebuffer = using_motion_pass ? rb_data->get_color_pass_fb(opaque_color_pass_flags) : color_framebuffer;
-			RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, PASS_MODE_COLOR, opaque_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags);
+			RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, PASS_MODE_COLOR, opaque_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags, env_override_material);
 			_render_list_with_draw_list(&render_list_params, opaque_framebuffer, load_color ? RD::INITIAL_ACTION_LOAD : RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_STORE, depth_pre_pass ? RD::INITIAL_ACTION_LOAD : RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_STORE, c, 0.0, 0);
 		}
 
@@ -2237,7 +2260,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		}
 
 		RID alpha_framebuffer = rb_data.is_valid() ? rb_data->get_color_pass_fb(transparent_color_pass_flags) : color_only_framebuffer;
-		RenderListParameters render_list_params(render_list[RENDER_LIST_ALPHA].elements.ptr(), render_list[RENDER_LIST_ALPHA].element_info.ptr(), render_list[RENDER_LIST_ALPHA].elements.size(), false, PASS_MODE_COLOR, transparent_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags);
+		RenderListParameters render_list_params(render_list[RENDER_LIST_ALPHA].elements.ptr(), render_list[RENDER_LIST_ALPHA].element_info.ptr(), render_list[RENDER_LIST_ALPHA].elements.size(), false, PASS_MODE_COLOR, transparent_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags, env_override_material);
 		_render_list_with_draw_list(&render_list_params, alpha_framebuffer, RD::INITIAL_ACTION_LOAD, RD::FINAL_ACTION_STORE, RD::INITIAL_ACTION_LOAD, RD::FINAL_ACTION_STORE);
 	}
 

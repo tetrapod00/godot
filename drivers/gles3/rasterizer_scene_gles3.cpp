@@ -2899,6 +2899,35 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 	SceneShaderGLES3::ShaderVariant shader_variant = SceneShaderGLES3::MODE_COLOR; // Assigned to silence wrong -Wmaybe-initialized
 	uint64_t prev_spec_constants = 0;
 
+	// Material override
+	RID material_override = RID();
+	GLES3::SceneShaderData *override_shader;
+	GLES3::SceneMaterialData *override_material_data;
+	if (p_render_data->environment.is_valid()) {
+		material_override = environment_get_material_override(p_render_data->environment);
+
+		GLES3::MaterialStorage *material_storage = GLES3::MaterialStorage::get_singleton();
+		RID m_src = material_override;
+		GLES3::SceneMaterialData *material_data = nullptr;
+
+		if (m_src.is_valid()) {
+			material_data = static_cast<GLES3::SceneMaterialData *>(material_storage->material_get_data(m_src, RS::SHADER_SPATIAL));
+			if (!material_data || !material_data->shader_data->valid) {
+				material_data = nullptr;
+				material_override = RID();
+			}
+			else {
+				override_material_data = material_data;
+				override_shader = material_data->shader_data;
+			}		
+		}
+	}
+	bool should_override = material_override != RID();
+	if (should_override)
+	{
+		
+	}
+
 	// Specializations constants used by all instances in the scene.
 	uint64_t base_spec_constants = p_params->spec_constant_base_flags;
 
@@ -2959,7 +2988,13 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 			} else if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_LIGHTING)) {
 				material_data = default_material_data_ptr;
 				shader = material_data->shader_data;
-			} else {
+			} else if (should_override) {
+				material_data = override_material_data;
+				shader =  override_shader;
+				// shader = surf->shader;
+				// material_data = surf->material;
+			}			
+			else {
 				shader = surf->shader;
 				material_data = surf->material;
 			}

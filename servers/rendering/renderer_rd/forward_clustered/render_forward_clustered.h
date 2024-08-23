@@ -213,8 +213,9 @@ class RenderForwardClustered : public RendererSceneRenderRD {
 		uint32_t element_offset = 0;
 		bool use_directional_soft_shadow = false;
 		uint32_t spec_constant_base_flags = 0;
+		RID material_override;
 
-		RenderListParameters(GeometryInstanceSurfaceDataCache **p_elements, RenderElementInfo *p_element_info, int p_element_count, bool p_reverse_cull, PassMode p_pass_mode, uint32_t p_color_pass_flags, bool p_no_gi, bool p_use_directional_soft_shadows, RID p_render_pass_uniform_set, bool p_force_wireframe = false, const Vector2 &p_uv_offset = Vector2(), float p_lod_distance_multiplier = 0.0, float p_screen_mesh_lod_threshold = 0.0, uint32_t p_view_count = 1, uint32_t p_element_offset = 0, uint32_t p_spec_constant_base_flags = 0) {
+		RenderListParameters(GeometryInstanceSurfaceDataCache **p_elements, RenderElementInfo *p_element_info, int p_element_count, bool p_reverse_cull, PassMode p_pass_mode, uint32_t p_color_pass_flags, bool p_no_gi, bool p_use_directional_soft_shadows, RID p_render_pass_uniform_set, bool p_force_wireframe = false, const Vector2 &p_uv_offset = Vector2(), float p_lod_distance_multiplier = 0.0, float p_screen_mesh_lod_threshold = 0.0, uint32_t p_view_count = 1, uint32_t p_element_offset = 0, uint32_t p_spec_constant_base_flags = 0, RID p_material_override = RID()) {
 			elements = p_elements;
 			element_info = p_element_info;
 			element_count = p_element_count;
@@ -231,6 +232,7 @@ class RenderForwardClustered : public RendererSceneRenderRD {
 			element_offset = p_element_offset;
 			use_directional_soft_shadow = p_use_directional_soft_shadows;
 			spec_constant_base_flags = p_spec_constant_base_flags;
+			material_override = p_material_override;
 		}
 	};
 
