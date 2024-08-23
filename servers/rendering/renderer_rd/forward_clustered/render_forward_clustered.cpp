@@ -338,9 +338,15 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 				shader = scene_shader.debug_shadow_splits_material_shader_ptr;
 			} else {
 #endif
-				material_uniform_set = surf->material_uniform_set;
-				shader = surf->shader;
-				surf->material->set_as_used();
+				bool has_override = false;
+				if (has_override) {
+					
+				} else {
+					material_uniform_set = surf->material_uniform_set;
+					shader = surf->shader;
+					surf->material->set_as_used();
+				}
+
 #ifdef DEBUG_ENABLED
 			}
 #endif

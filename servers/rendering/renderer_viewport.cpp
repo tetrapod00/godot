@@ -1560,6 +1560,12 @@ int RendererViewport::get_num_viewports_with_motion_vectors() const {
 	return num_viewports_with_motion_vectors;
 }
 
+void RendererViewport::viewport_set_material_override(RID p_viewport, RID p_material) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+	viewport->material_override = p_material;
+}
+
 RendererViewport::RendererViewport() {
 	occlusion_rays_per_thread = GLOBAL_GET("rendering/occlusion_culling/occlusion_rays_per_thread");
 }

@@ -1090,6 +1090,21 @@ void Environment::_update_adjustment() {
 			color_correction);
 }
 
+void Environment::set_material_override(const Ref<Material> &p_material) {
+	if (material_override.is_valid()) {
+		material_override->disconnect(CoreStringName(property_list_changed), callable_mp((Object *)this, &Object::notify_property_list_changed));
+	}
+	material_override = p_material;
+	if (material_override.is_valid()) {
+		material_override->connect(CoreStringName(property_list_changed), callable_mp((Object *)this, &Object::notify_property_list_changed));
+	}	
+	RS::get_singleton()->environment_set_material_override(get_rid(), p_material.is_valid() ? p_material->get_rid() : RID());
+}
+
+Ref<Material> Environment::get_material_override() const {
+	return material_override;
+}
+
 // Private methods, constructor and destructor
 
 void Environment::_validate_property(PropertyInfo &p_property) const {
@@ -1559,6 +1574,12 @@ void Environment::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "adjustment_contrast", PROPERTY_HINT_RANGE, "0.01,8,0.01"), "set_adjustment_contrast", "get_adjustment_contrast");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "adjustment_saturation", PROPERTY_HINT_RANGE, "0.01,8,0.01"), "set_adjustment_saturation", "get_adjustment_saturation");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "adjustment_color_correction", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D,Texture3D"), "set_adjustment_color_correction", "get_adjustment_color_correction");
+
+	// Material Override
+
+	ClassDB::bind_method(D_METHOD("set_material_override", "material"), &Environment::set_material_override);
+	ClassDB::bind_method(D_METHOD("get_material_override"), &Environment::get_material_override);
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material_override", PROPERTY_HINT_RESOURCE_TYPE, "BaseMaterial3D,ShaderMaterial", PROPERTY_USAGE_DEFAULT), "set_material_override", "get_material_override");
 
 	// Constants
 

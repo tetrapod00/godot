@@ -153,6 +153,9 @@ private:
 		float adjustments_saturation = 1.0f;
 		bool use_1d_color_correction = false;
 		RID color_correction;
+
+		// Material Override
+		RID material_override;
 	};
 
 	mutable RID_Owner<Environment, true> environment_owner;
@@ -305,6 +308,10 @@ public:
 	float environment_get_adjustments_saturation(RID p_env) const;
 	bool environment_get_use_1d_color_correction(RID p_env) const;
 	RID environment_get_color_correction(RID p_env) const;
+
+	// Material Override
+	RID environment_get_material_override(RID p_env) const;
+	void environment_set_material_override(RID p_env, RID p_material);
 };
 
 #endif // ENVIRONMENT_STORAGE_H

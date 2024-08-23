@@ -4348,6 +4348,9 @@ bool Viewport::is_3d_disabled() const {
 	return disable_3d;
 }
 
+void Viewport::set_material_override(const Ref<Material> &p_material) {
+	if (material_override.is_valid()) {
+		material_override->disconnect(CoreStringName(property_list_changed), callable_mp((Object *)this, &Object::notify_property_list_changed));
 bool Viewport::is_camera_3d_override_enabled() const {
 	ERR_READ_THREAD_GUARD_V(false);
 	return camera_3d_override;

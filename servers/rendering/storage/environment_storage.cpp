@@ -817,3 +817,17 @@ RID RendererEnvironmentStorage::environment_get_color_correction(RID p_env) cons
 	ERR_FAIL_NULL_V(env, RID());
 	return env->color_correction;
 }
+
+// Material Override
+
+RID RendererEnvironmentStorage::environment_get_material_override(RID p_env) const {
+	Environment *env = environment_owner.get_or_null(p_env);
+	ERR_FAIL_NULL_V(env, RID());
+	return env->material_override;	
+}
+
+void RendererEnvironmentStorage::environment_set_material_override(RID p_env, RID p_material) {
+	Environment *env = environment_owner.get_or_null(p_env);
+	ERR_FAIL_NULL(env);
+	env->material_override = p_material;
+}

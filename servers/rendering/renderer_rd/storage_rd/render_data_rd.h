@@ -79,6 +79,7 @@ public:
 
 	/* Viewport data */
 	bool transparent_bg = false;
+	RID material_override;
 
 	/* Shadow data */
 	const RendererSceneRender::RenderShadowData *render_shadows = nullptr;

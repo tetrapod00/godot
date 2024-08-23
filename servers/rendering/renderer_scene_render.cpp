@@ -711,3 +711,13 @@ bool RendererSceneRender::environment_get_use_1d_color_correction(RID p_env) con
 RID RendererSceneRender::environment_get_color_correction(RID p_env) const {
 	return environment_storage.environment_get_color_correction(p_env);
 }
+
+// Material Override
+
+RID RendererSceneRender::environment_get_material_override(RID p_env) const {
+	return environment_storage.environment_get_material_override(p_env);
+}
+
+void RendererSceneRender::environment_set_material_override(RID p_env, RID p_material) {
+	environment_storage.environment_set_material_override(p_env, p_material);
+}

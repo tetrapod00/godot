@@ -221,6 +221,9 @@ private:
 	Ref<Texture> adjustment_color_correction;
 	void _update_adjustment();
 
+	// Material Override
+	Ref<Material> material_override;
+
 protected:
 	static void _bind_methods();
 	void _validate_property(PropertyInfo &p_property) const;
@@ -441,6 +444,10 @@ public:
 	float get_adjustment_saturation() const;
 	void set_adjustment_color_correction(Ref<Texture> p_color_correction);
 	Ref<Texture> get_adjustment_color_correction() const;
+
+	// Material Override
+	void set_material_override(const Ref<Material> &p_material);
+	Ref<Material> get_material_override() const;
 
 	Environment();
 	~Environment();

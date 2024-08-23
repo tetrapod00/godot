@@ -680,6 +680,9 @@ public:
 	FUNC2(viewport_set_vrs_update_mode, RID, ViewportVRSUpdateMode)
 	FUNC2(viewport_set_vrs_texture, RID, RID)
 
+	FUNC2(viewport_set_material_override, RID, RID)
+
+
 	/* COMPOSITOR EFFECT */
 
 #undef server_name
@@ -756,6 +759,9 @@ public:
 	FUNC1(environment_set_sdfgi_ray_count, EnvironmentSDFGIRayCount)
 	FUNC1(environment_set_sdfgi_frames_to_converge, EnvironmentSDFGIFramesToConverge)
 	FUNC1(environment_set_sdfgi_frames_to_update_light, EnvironmentSDFGIFramesToUpdateLight)
+
+	FUNC1RC(RID, environment_get_material_override, RID)
+ 	FUNC2(environment_set_material_override, RID, RID)
 
 	FUNC3R(Ref<Image>, environment_bake_panorama, RID, bool, const Size2i &)
 

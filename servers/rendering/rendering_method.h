@@ -178,6 +178,7 @@ public:
 	virtual float environment_get_ambient_sky_contribution(RID p_env) const = 0;
 	virtual RS::EnvironmentReflectionSource environment_get_reflection_source(RID p_env) const = 0;
 
+
 	// Tonemap
 	virtual void environment_set_tonemap(RID p_env, RS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white) = 0;
 
@@ -310,6 +311,10 @@ public:
 	virtual float environment_get_adjustments_saturation(RID p_env) const = 0;
 	virtual bool environment_get_use_1d_color_correction(RID p_env) const = 0;
 	virtual RID environment_get_color_correction(RID p_env) const = 0;
+
+	virtual RID environment_get_material_override(RID p_env) const = 0;	
+	virtual void environment_set_material_override(RID p_env, RID p_material) = 0;	
+
 
 	virtual Ref<Image> environment_bake_panorama(RID p_env, bool p_bake_irradiance, const Size2i &p_size) = 0;
 
