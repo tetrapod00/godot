@@ -42,15 +42,29 @@ class MultiMeshInstance3D : public GeometryInstance3D {
 	void _refresh_interpolated();
 
 protected:
+	void _multimesh_changed();
+
+	bool _set(const StringName &p_name, const Variant &p_value);
+	bool _get(const StringName &p_name, Variant &r_ret) const;
+
 	virtual void _physics_interpolated_changed() override;
+	void _get_property_list(List<PropertyInfo> *p_list) const;
 	static void _bind_methods();
 	void _notification(int p_what);
+	void _validate_property(PropertyInfo &p_property) const;
+
+	Vector<Ref<Material>> surface_override_materials;
 
 public:
 	void set_multimesh(const Ref<MultiMesh> &p_multimesh);
 	Ref<MultiMesh> get_multimesh() const;
 
 	Array get_meshes() const;
+
+	int get_surface_override_material_count() const;
+	void set_surface_override_material(int p_surface, const Ref<Material> &p_material);
+	Ref<Material> get_surface_override_material(int p_surface) const;
+	Ref<Material> get_active_material(int p_surface) const;
 
 	virtual AABB get_aabb() const override;
 
