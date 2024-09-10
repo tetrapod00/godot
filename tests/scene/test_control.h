@@ -61,6 +61,135 @@ TEST_CASE("[SceneTree][Control]") {
 	}
 }
 
+TEST_CASE("[Control][SceneTree] Focus behavior.") {
+	Window *root = SceneTree::get_singleton()->get_root();
+	int size = 100;
+	int margin = 5;
+
+	SUBCASE("[Control][SceneTree] Navigation of four controls in a grid, with separation between controls.") {
+		Control *control_up_left = memnew(Control);
+		Control *control_up_right = memnew(Control);
+		Control *control_down_left = memnew(Control);
+		Control *control_down_right = memnew(Control);
+
+		root->add_child(control_up_left);
+		root->add_child(control_up_right);
+		root->add_child(control_down_left);
+		root->add_child(control_down_right);
+
+		// Arrange four controls in a grid.
+		control_up_left->set_focus_mode(Control::FOCUS_ALL);
+		control_up_left->set_size(Size2(size, size));
+		control_up_left->set_global_position(Point2(0, 0));
+
+		control_up_right->set_focus_mode(Control::FOCUS_ALL);
+		control_up_right->set_size(Size2(size, size));
+		control_up_right->set_global_position(Point2(size + margin, 0));
+
+		control_down_left->set_focus_mode(Control::FOCUS_ALL);
+		control_down_left->set_size(Size2(size, size));
+		control_down_left->set_global_position(Point2(0, size + margin));
+
+		control_down_right->set_focus_mode(Control::FOCUS_ALL);
+		control_down_right->set_size(Size2(size, size));
+		control_down_right->set_global_position(Point2(size + margin, size + margin));
+
+		// Focus the upper-left control, then visit the four controls in clockwise order.
+		control_up_left->grab_focus();
+		CHECK(root->gui_get_focus_owner() == control_up_left);
+		SEND_GUI_ACTION("ui_right");
+		CHECK(root->gui_get_focus_owner() == control_up_right);
+		SEND_GUI_ACTION("ui_down");
+		CHECK(root->gui_get_focus_owner() == control_down_right);
+		SEND_GUI_ACTION("ui_left");
+		CHECK(root->gui_get_focus_owner() == control_down_left);
+		SEND_GUI_ACTION("ui_up");
+		CHECK(root->gui_get_focus_owner() == control_up_left);
+
+		// The upper-left control has no up or left neighbors, so focus should not change.
+		SEND_GUI_ACTION("ui_left");
+		CHECK(root->gui_get_focus_owner() == control_up_left);
+		SEND_GUI_ACTION("ui_up");
+		CHECK(root->gui_get_focus_owner() == control_up_left);
+
+		// Manually set the focus neighbors, so attempting to navigate clockwise instead navigates counterclockwise.
+		control_up_left->set_focus_neighbor(SIDE_RIGHT, control_up_left->get_path_to(control_down_left));
+		CHECK(control_up_left->get_focus_neighbor(SIDE_RIGHT) == control_up_left->get_path_to(control_down_left));
+
+		control_down_left->set_focus_neighbor(SIDE_TOP, control_down_left->get_path_to(control_down_right));
+		CHECK(control_down_left->get_focus_neighbor(SIDE_TOP) == control_down_left->get_path_to(control_down_right));
+
+		control_down_right->set_focus_neighbor(SIDE_LEFT, control_down_right->get_path_to(control_up_right));
+		CHECK(control_down_right->get_focus_neighbor(SIDE_LEFT) == control_down_right->get_path_to(control_up_right));
+
+		control_up_right->set_focus_neighbor(SIDE_BOTTOM, control_up_right->get_path_to(control_up_left));
+		CHECK(control_up_right->get_focus_neighbor(SIDE_BOTTOM) == control_up_right->get_path_to(control_up_left));
+
+		control_up_left->grab_focus();
+		CHECK(root->gui_get_focus_owner() == control_up_left);
+		SEND_GUI_ACTION("ui_right");
+		CHECK(root->gui_get_focus_owner() == control_down_left);
+		SEND_GUI_ACTION("ui_up");
+		CHECK(root->gui_get_focus_owner() == control_down_right);
+		SEND_GUI_ACTION("ui_left");
+		CHECK(root->gui_get_focus_owner() == control_up_right);
+		SEND_GUI_ACTION("ui_down");
+		CHECK(root->gui_get_focus_owner() == control_up_left);
+
+		memdelete(control_up_left);
+		memdelete(control_up_right);
+		memdelete(control_down_left);
+		memdelete(control_down_right);
+	}
+
+	SUBCASE("[Control][SceneTree] Navigation of three square controls above one wide control.") {
+		Control *control_up_left = memnew(Control);
+		Control *control_up_middle = memnew(Control);
+		Control *control_up_right = memnew(Control);
+		Control *control_down = memnew(Control);
+
+		root->add_child(control_up_left);
+		root->add_child(control_up_right);
+		root->add_child(control_up_middle);
+		root->add_child(control_down);
+
+		// Arrange three small square controls above one wide control.
+		control_up_left->set_focus_mode(Control::FOCUS_ALL);
+		control_up_left->set_size(Size2(size, size));
+		control_up_left->set_global_position(Point2(0, 0));
+
+		control_up_middle->set_focus_mode(Control::FOCUS_ALL);
+		control_up_middle->set_size(Size2(size, size));
+		control_up_middle->set_global_position(Point2(size + margin, 0));
+
+		control_up_right->set_focus_mode(Control::FOCUS_ALL);
+		control_up_right->set_size(Size2(size, size));
+		control_up_right->set_global_position(Point2(2 * size + 2 * margin, 0));
+
+		control_down->set_focus_mode(Control::FOCUS_ALL);
+		control_down->set_size(Size2(3 * size + 2 * margin, size));
+		control_down->set_global_position(Point2(0, size + margin));
+
+		// Focus the each upper control, then navigate down.
+		control_up_left->grab_focus();
+		SEND_GUI_ACTION("ui_down");
+		CHECK(root->gui_get_focus_owner() == control_down);
+
+		control_up_middle->grab_focus();
+		SEND_GUI_ACTION("ui_down");
+		CHECK(root->gui_get_focus_owner() == control_down);
+
+		control_up_right->grab_focus();
+		SEND_GUI_ACTION("ui_down");
+		CHECK(root->gui_get_focus_owner() == control_down);
+
+		memdelete(control_up_left);
+		memdelete(control_up_middle);
+		memdelete(control_up_right);
+		memdelete(control_down);
+	}
+}
+
 } // namespace TestControl
 
 #endif // TEST_CONTROL_H
