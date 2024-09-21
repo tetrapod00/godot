@@ -405,9 +405,29 @@ public:
 		TYPE_MAX,
 	};
 
+	enum TextureFilter {
+		FILTER_DEFAULT,
+		FILTER_NEAREST,
+		FILTER_LINEAR,
+		FILTER_NEAREST_MIPMAP,
+		FILTER_LINEAR_MIPMAP,
+		FILTER_NEAREST_MIPMAP_ANISOTROPIC,
+		FILTER_LINEAR_MIPMAP_ANISOTROPIC,
+		FILTER_MAX,
+	};
+
+	enum TextureRepeat {
+		REPEAT_DEFAULT,
+		REPEAT_ENABLED,
+		REPEAT_DISABLED,
+		REPEAT_MAX,
+	};
+
 private:
 	Source source = SOURCE_TEXTURE;
 	TextureType texture_type = TYPE_DATA;
+	TextureFilter texture_filter = FILTER_DEFAULT;
+	TextureRepeat texture_repeat = REPEAT_DEFAULT;
 
 protected:
 	static void _bind_methods();
@@ -438,8 +458,16 @@ public:
 	void set_texture_type(TextureType p_texture_type);
 	TextureType get_texture_type() const;
 
+	void set_texture_filter(TextureFilter p_filter);
+	TextureFilter get_texture_filter() const;
+
+	void set_texture_repeat(TextureRepeat p_repeat);
+	TextureRepeat get_texture_repeat() const;
+
 	virtual Vector<StringName> get_editable_properties() const override;
 
+	virtual HashMap<StringName, String> get_editable_properties_names() const override;
+	virtual bool is_show_prop_names() const override;
 	virtual String get_warning(Shader::Mode p_mode, VisualShader::Type p_type) const override;
 
 	virtual Category get_category() const override { return CATEGORY_TEXTURES; }
@@ -449,6 +477,8 @@ public:
 
 VARIANT_ENUM_CAST(VisualShaderNodeTexture::TextureType)
 VARIANT_ENUM_CAST(VisualShaderNodeTexture::Source)
+VARIANT_ENUM_CAST(VisualShaderNodeTexture::TextureFilter)
+VARIANT_ENUM_CAST(VisualShaderNodeTexture::TextureRepeat)
 
 ///////////////////////////////////////
 
