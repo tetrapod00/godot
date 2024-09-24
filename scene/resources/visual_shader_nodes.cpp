@@ -668,6 +668,111 @@ void VisualShaderNodeTransformConstant::_bind_methods() {
 VisualShaderNodeTransformConstant::VisualShaderNodeTransformConstant() {
 }
 
+////////////// Math Constant
+
+String VisualShaderNodeMathConstant::get_caption() const {
+	return "MathConstant";
+}
+
+int VisualShaderNodeMathConstant::get_input_port_count() const {
+	return 0;
+}
+
+VisualShaderNodeMathConstant::PortType VisualShaderNodeMathConstant::get_input_port_type(int p_port) const {
+	return PORT_TYPE_SCALAR;
+}
+
+String VisualShaderNodeMathConstant::get_input_port_name(int p_port) const {
+	return String();
+}
+
+int VisualShaderNodeMathConstant::get_output_port_count() const {
+	return 1;
+}
+
+VisualShaderNodeMathConstant::PortType VisualShaderNodeMathConstant::get_output_port_type(int p_port) const {
+	return PORT_TYPE_SCALAR;
+}
+
+String VisualShaderNodeMathConstant::get_output_port_name(int p_port) const {
+	return ""; // No output port means the editor will be used as port.
+}
+
+String VisualShaderNodeMathConstant::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
+	return "	" + p_output_vars[0] + " = " + vformat("%.6f", get_constant_value()) + ";\n";
+}
+
+void VisualShaderNodeMathConstant::set_constant(VisualShaderNodeMathConstant::Constant p_constant) {
+	ERR_FAIL_INDEX(int(p_constant), int(CONSTANT_MAX));
+	if (constant == p_constant) {
+		return;
+	}
+	constant = p_constant;
+	emit_changed();
+}
+
+VisualShaderNodeMathConstant::Constant VisualShaderNodeMathConstant::get_constant() const {
+	return constant;
+}
+
+float VisualShaderNodeMathConstant::get_constant_value() const {
+	switch (constant) {
+		case CONSTANT_E: {
+			return Math_E;
+		} break;
+		case CONSTANT_EPSILON: {
+			return CMP_EPSILON;
+		} break;
+		case CONSTANT_PHI: {
+			return 1.618034f;
+		} break;
+		case CONSTANT_PI: {
+			return Math_PI;
+		} break;
+		case CONSTANT_PI_OVER_2: {
+			return Math_PI / 2;
+		} break;
+		case CONSTANT_PI_OVER_4: {
+			return Math_PI / 4;
+		} break;
+		case CONSTANT_SQRT2: {
+			return Math_SQRT2;
+		} break;
+		case CONSTANT_TAU: {
+			return Math_TAU;
+		} break;
+		default: {
+			return 0;
+		} break;
+	}
+}
+
+Vector<StringName> VisualShaderNodeMathConstant::get_editable_properties() const {
+	Vector<StringName> props;
+	props.push_back("constant");
+	return props;
+}
+
+void VisualShaderNodeMathConstant::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_constant", "constant"), &VisualShaderNodeMathConstant::set_constant);
+	ClassDB::bind_method(D_METHOD("get_constant"), &VisualShaderNodeMathConstant::get_constant);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "constant", PROPERTY_HINT_ENUM, "E, Epsilon, Phi, Pi, Pi/2, Pi/4, Sqrt2, Tau"), "set_constant", "get_constant");
+
+	BIND_ENUM_CONSTANT(CONSTANT_E);
+	BIND_ENUM_CONSTANT(CONSTANT_EPSILON);
+	BIND_ENUM_CONSTANT(CONSTANT_PHI);
+	BIND_ENUM_CONSTANT(CONSTANT_PI);
+	BIND_ENUM_CONSTANT(CONSTANT_PI_OVER_2);
+	BIND_ENUM_CONSTANT(CONSTANT_PI_OVER_4);
+	BIND_ENUM_CONSTANT(CONSTANT_SQRT2);
+	BIND_ENUM_CONSTANT(CONSTANT_TAU);
+	BIND_ENUM_CONSTANT(CONSTANT_MAX);
+}
+
+VisualShaderNodeMathConstant::VisualShaderNodeMathConstant() {
+}
+
 ////////////// Texture
 
 String VisualShaderNodeTexture::get_caption() const {

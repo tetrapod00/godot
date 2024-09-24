@@ -378,6 +378,56 @@ public:
 };
 
 ///////////////////////////////////////
+
+class VisualShaderNodeMathConstant : public VisualShaderNodeConstant {
+	GDCLASS(VisualShaderNodeMathConstant, VisualShaderNodeConstant);
+
+public:
+	enum Constant {
+		CONSTANT_E,
+		CONSTANT_EPSILON,
+		CONSTANT_PHI,
+		CONSTANT_PI,
+		CONSTANT_PI_OVER_2,
+		CONSTANT_PI_OVER_4,
+		CONSTANT_SQRT2,
+		CONSTANT_TAU,
+		CONSTANT_MAX,
+	};
+
+protected:
+	static void _bind_methods();
+	Constant constant = CONSTANT_E;
+
+public:
+	virtual String get_caption() const override;
+
+	virtual int get_input_port_count() const override;
+	virtual PortType get_input_port_type(int p_port) const override;
+	virtual String get_input_port_name(int p_port) const override;
+
+	virtual int get_output_port_count() const override;
+	virtual PortType get_output_port_type(int p_port) const override;
+	virtual String get_output_port_name(int p_port) const override;
+
+	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
+
+	void set_constant(Constant p_constant);
+	Constant get_constant() const;
+	float get_constant_value() const;
+
+	virtual Vector<StringName> get_editable_properties() const override;
+
+	virtual Category get_category() const override { return CATEGORY_SCALAR; }
+
+	VisualShaderNodeMathConstant();
+};
+
+VARIANT_ENUM_CAST(VisualShaderNodeMathConstant::Constant)
+
+///////////////////////////////////////
+
+///////////////////////////////////////
 /// TEXTURES
 ///////////////////////////////////////
 

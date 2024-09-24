@@ -3290,6 +3290,17 @@ void VisualShaderEditor::_setup_node(VisualShaderNode *p_node, const Vector<Vari
 		}
 	}
 
+	// MATH_CONST
+	{
+		VisualShaderNodeMathConstant *math_const = Object::cast_to<VisualShaderNodeMathConstant>(p_node);
+
+		if (math_const) {
+			ERR_FAIL_COND(p_ops[0].get_type() != Variant::INT);
+			math_const->set_constant((VisualShaderNodeMathConstant::Constant)(int)p_ops[0]);
+			return;
+		}
+	}
+
 	// FLOAT_CONST
 	{
 		VisualShaderNodeFloatConstant *float_const = Object::cast_to<VisualShaderNodeFloatConstant>(p_node);
@@ -4568,11 +4579,36 @@ void VisualShaderEditor::_convert_constants_to_parameters(bool p_vice_versa) {
 				}
 			}
 		}
+
+		// Math constants need special handling.
+		float value = 0;
+		bool is_math = false;
+		if (!p_vice_versa) {
+			Ref<VisualShaderNodeMathConstant> math_const = Object::cast_to<VisualShaderNodeMathConstant>(node.ptr());
+			if (math_const.is_valid()) {
+				_replace_node(type_id, node_id, "VisualShaderNodeMathConstant", "VisualShaderNodeFloatParameter");
+				var = math_const->get_constant();
+				value = math_const->get_constant_value();
+				caught = true;
+				is_math = true;
+			}
+		} else {
+			// Float parameters are converted to float constants, never to math constants.
+
+			// Ref<VisualShaderNodeFloatParameter> float_parameter = Object::cast_to<VisualShaderNodeFloatParameter>(node.ptr());
+			// if (float_parameter.is_valid()) {
+			// 	_replace_node(type_id, node_id, "VisualShaderNodeFloatParameter", "VisualShaderNodeFloatConstant");
+			// 	var = float_parameter->get_default_value();
+			// 	caught = true;
+			// }
+		}
+
 		ERR_CONTINUE(!caught);
 		int preview_port = node->get_output_port_for_preview();
 
 		if (!p_vice_versa) {
-			undo_redo->add_do_method(this, "_update_parameter", type_id, node_id, var, preview_port);
+			Variant v = is_math ? value : var;
+			undo_redo->add_do_method(this, "_update_parameter", type_id, node_id, v, preview_port);
 			undo_redo->add_undo_method(this, "_update_constant", type_id, node_id, var, preview_port);
 		} else {
 			undo_redo->add_do_method(this, "_update_constant", type_id, node_id, var, preview_port);
@@ -7054,11 +7090,16 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_options.push_back(AddOption("UIntFunc", "Scalar/Common", "VisualShaderNodeUIntFunc", TTR("Unsigned integer function."), {}, VisualShaderNode::PORT_TYPE_SCALAR_UINT));
 	add_options.push_back(AddOption("UIntOp", "Scalar/Common", "VisualShaderNodeUIntOp", TTR("Unsigned integer operator."), {}, VisualShaderNode::PORT_TYPE_SCALAR_UINT));
 
-	// CONSTANTS
+	// MATH CONSTANTS
+	add_options.push_back(AddOption("E", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("E constant (2.718282). Represents the base of the natural logarithm."), { VisualShaderNodeMathConstant::CONSTANT_E }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Epsilon", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Epsilon constant (0.00001). Smallest possible scalar number."), { VisualShaderNodeMathConstant::CONSTANT_EPSILON }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Phi", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Phi constant (1.618034). Golden ratio."), { VisualShaderNodeMathConstant::CONSTANT_PHI }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Pi", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Pi constant (3.141593) or 180 degrees."), { VisualShaderNodeMathConstant::CONSTANT_PI }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Pi/2", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Pi/2 constant (1.570796) or 90 degrees."), { VisualShaderNodeMathConstant::CONSTANT_PI_OVER_2 }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Pi/4", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Pi/4 constant (0.785398) or 45 degrees."), { VisualShaderNodeMathConstant::CONSTANT_PI_OVER_4 }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Sqrt2", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Sqrt2 constant (1.414214). Square root of 2."), { VisualShaderNodeMathConstant::CONSTANT_SQRT2 }, VisualShaderNode::PORT_TYPE_SCALAR));
+	add_options.push_back(AddOption("Tau", "Scalar/Constants", "VisualShaderNodeMathConstant", TTR("Tau constant (6.283185) or 360 degrees."), { VisualShaderNodeMathConstant::CONSTANT_TAU }, VisualShaderNode::PORT_TYPE_SCALAR));
 
-	for (int i = 0; i < MAX_FLOAT_CONST_DEFS; i++) {
-		add_options.push_back(AddOption(float_constant_defs[i].name, "Scalar/Constants", "VisualShaderNodeFloatConstant", float_constant_defs[i].desc, { float_constant_defs[i].value }, VisualShaderNode::PORT_TYPE_SCALAR));
-	}
 	// FUNCTIONS
 
 	add_options.push_back(AddOption("Abs", "Scalar/Functions", "VisualShaderNodeFloatFunc", TTR("Returns the absolute value of the parameter."), { VisualShaderNodeFloatFunc::FUNC_ABS }, VisualShaderNode::PORT_TYPE_SCALAR));
