@@ -383,7 +383,7 @@ class VisualShaderNodeMathConstant : public VisualShaderNodeConstant {
 	GDCLASS(VisualShaderNodeMathConstant, VisualShaderNodeConstant);
 
 public:
-	enum Constant {
+	enum ConstantType {
 		CONSTANT_E,
 		CONSTANT_EPSILON,
 		CONSTANT_PHI,
@@ -397,7 +397,7 @@ public:
 
 protected:
 	static void _bind_methods();
-	Constant constant = CONSTANT_E;
+	ConstantType constant_type = CONSTANT_E;
 
 public:
 	virtual String get_caption() const override;
@@ -412,9 +412,11 @@ public:
 
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
 
-	void set_constant(Constant p_constant);
-	Constant get_constant() const;
-	float get_constant_value() const;
+	void set_constant_type(ConstantType p_constant_type);
+	ConstantType get_constant_type() const;
+
+	void set_constant(float p_constant);
+	float get_constant() const;
 
 	virtual Vector<StringName> get_editable_properties() const override;
 
@@ -423,7 +425,7 @@ public:
 	VisualShaderNodeMathConstant();
 };
 
-VARIANT_ENUM_CAST(VisualShaderNodeMathConstant::Constant)
+VARIANT_ENUM_CAST(VisualShaderNodeMathConstant::ConstantType)
 
 ///////////////////////////////////////
 

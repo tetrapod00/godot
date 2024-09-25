@@ -699,24 +699,50 @@ String VisualShaderNodeMathConstant::get_output_port_name(int p_port) const {
 }
 
 String VisualShaderNodeMathConstant::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
-	return "	" + p_output_vars[0] + " = " + vformat("%.6f", get_constant_value()) + ";\n";
+	return "	" + p_output_vars[0] + " = " + vformat("%.6f", get_constant()) + ";\n";
 }
 
-void VisualShaderNodeMathConstant::set_constant(VisualShaderNodeMathConstant::Constant p_constant) {
-	ERR_FAIL_INDEX(int(p_constant), int(CONSTANT_MAX));
-	if (constant == p_constant) {
+void VisualShaderNodeMathConstant::set_constant_type(VisualShaderNodeMathConstant::ConstantType p_constant_type) {
+	ERR_FAIL_INDEX(int(p_constant_type), int(CONSTANT_MAX));
+	if (constant_type == p_constant_type) {
 		return;
 	}
-	constant = p_constant;
+	constant_type = p_constant_type;
 	emit_changed();
 }
 
-VisualShaderNodeMathConstant::Constant VisualShaderNodeMathConstant::get_constant() const {
-	return constant;
+VisualShaderNodeMathConstant::ConstantType VisualShaderNodeMathConstant::get_constant_type() const {
+	return constant_type;
 }
 
-float VisualShaderNodeMathConstant::get_constant_value() const {
-	switch (constant) {
+void VisualShaderNodeMathConstant::set_constant(float p_constant) {
+	if (Math::is_equal_approx(get_constant(), p_constant)) {
+		return;
+	}
+
+	if (Math::is_equal_approx(p_constant, (float)Math_E)) {
+		constant_type = CONSTANT_E;
+	} else if (Math::is_equal_approx(p_constant, (float)CMP_EPSILON)) {
+		constant_type = CONSTANT_EPSILON;
+	} else if (Math::is_equal_approx(p_constant, (float)1.618034f)) {
+		constant_type = CONSTANT_PHI;
+	} else if (Math::is_equal_approx(p_constant, (float)Math_PI)) {
+		constant_type = CONSTANT_PI;
+	} else if (Math::is_equal_approx(p_constant, (float)(Math_PI / 2))) {
+		constant_type = CONSTANT_PI_OVER_2;
+	} else if (Math::is_equal_approx(p_constant, (float)(Math_PI / 4))) {
+		constant_type = CONSTANT_PI_OVER_4;
+	} else if (Math::is_equal_approx(p_constant, (float)Math_SQRT2)) {
+		constant_type = CONSTANT_SQRT2;
+	} else if (Math::is_equal_approx(p_constant, (float)Math_TAU)) {
+		constant_type = CONSTANT_TAU;
+	} else {
+		constant_type = CONSTANT_EPSILON;
+	}
+}
+
+float VisualShaderNodeMathConstant::get_constant() const {
+	switch (constant_type) {
 		case CONSTANT_E: {
 			return Math_E;
 		} break;
@@ -749,7 +775,7 @@ float VisualShaderNodeMathConstant::get_constant_value() const {
 
 Vector<StringName> VisualShaderNodeMathConstant::get_editable_properties() const {
 	Vector<StringName> props;
-	props.push_back("constant");
+	props.push_back("constant_type");
 	return props;
 }
 
@@ -757,7 +783,10 @@ void VisualShaderNodeMathConstant::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_constant", "constant"), &VisualShaderNodeMathConstant::set_constant);
 	ClassDB::bind_method(D_METHOD("get_constant"), &VisualShaderNodeMathConstant::get_constant);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "constant", PROPERTY_HINT_ENUM, "E, Epsilon, Phi, Pi, Pi/2, Pi/4, Sqrt2, Tau"), "set_constant", "get_constant");
+	ClassDB::bind_method(D_METHOD("set_constant_type", "constant_type"), &VisualShaderNodeMathConstant::set_constant_type);
+	ClassDB::bind_method(D_METHOD("get_constant_type"), &VisualShaderNodeMathConstant::get_constant_type);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "constant_type", PROPERTY_HINT_ENUM, "E, Epsilon, Phi, Pi, Pi/2, Pi/4, Sqrt2, Tau"), "set_constant_type", "get_constant_type");
 
 	BIND_ENUM_CONSTANT(CONSTANT_E);
 	BIND_ENUM_CONSTANT(CONSTANT_EPSILON);

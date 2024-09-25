@@ -3296,7 +3296,7 @@ void VisualShaderEditor::_setup_node(VisualShaderNode *p_node, const Vector<Vari
 
 		if (math_const) {
 			ERR_FAIL_COND(p_ops[0].get_type() != Variant::INT);
-			math_const->set_constant((VisualShaderNodeMathConstant::Constant)(int)p_ops[0]);
+			math_const->set_constant((VisualShaderNodeMathConstant::ConstantType)(int)p_ops[0]);
 			return;
 		}
 	}
@@ -4580,35 +4580,28 @@ void VisualShaderEditor::_convert_constants_to_parameters(bool p_vice_versa) {
 			}
 		}
 
-		// Math constants need special handling.
-		float value = 0;
-		bool is_math = false;
-		if (!p_vice_versa) {
-			Ref<VisualShaderNodeMathConstant> math_const = Object::cast_to<VisualShaderNodeMathConstant>(node.ptr());
-			if (math_const.is_valid()) {
-				_replace_node(type_id, node_id, "VisualShaderNodeMathConstant", "VisualShaderNodeFloatParameter");
-				var = math_const->get_constant();
-				value = math_const->get_constant_value();
-				caught = true;
-				is_math = true;
-			}
-		} else {
-			// Float parameters are converted to float constants, never to math constants.
-
-			// Ref<VisualShaderNodeFloatParameter> float_parameter = Object::cast_to<VisualShaderNodeFloatParameter>(node.ptr());
-			// if (float_parameter.is_valid()) {
-			// 	_replace_node(type_id, node_id, "VisualShaderNodeFloatParameter", "VisualShaderNodeFloatConstant");
-			// 	var = float_parameter->get_default_value();
-			// 	caught = true;
-			// }
-		}
+		// // Math
+		// if (!p_vice_versa) {
+		// 	Ref<VisualShaderNodeMathConstant> math_const = Object::cast_to<VisualShaderNodeMathConstant>(node.ptr());
+		// 	if (math_const.is_valid()) {
+		// 		_replace_node(type_id, node_id, "VisualShaderNodeMathConstant", "VisualShaderNodeFloatParameter");
+		// 		var = math_const->get_constant();
+		// 		caught = true;
+		// 	}
+		// } else {
+		// 	// Ref<VisualShaderNodeFloatParameter> float_parameter = Object::cast_to<VisualShaderNodeFloatParameter>(node.ptr());
+		// 	// if (float_parameter.is_valid()) {
+		// 	// 	_replace_node(type_id, node_id, "VisualShaderNodeFloatParameter", "VisualShaderNodeMathConstant");
+		// 	// 	var = float_parameter->get_default_value();
+		// 	// 	caught = true;
+		// 	// }
+		// }
 
 		ERR_CONTINUE(!caught);
 		int preview_port = node->get_output_port_for_preview();
 
 		if (!p_vice_versa) {
-			Variant v = is_math ? value : var;
-			undo_redo->add_do_method(this, "_update_parameter", type_id, node_id, v, preview_port);
+			undo_redo->add_do_method(this, "_update_parameter", type_id, node_id, var, preview_port);
 			undo_redo->add_undo_method(this, "_update_constant", type_id, node_id, var, preview_port);
 		} else {
 			undo_redo->add_do_method(this, "_update_constant", type_id, node_id, var, preview_port);
