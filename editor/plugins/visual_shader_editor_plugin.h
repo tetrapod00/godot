@@ -334,6 +334,7 @@ class VisualShaderEditor : public ShaderEditor {
 		FLOAT_CONSTANTS,
 		CONVERT_CONSTANTS_TO_PARAMETERS,
 		CONVERT_PARAMETERS_TO_CONSTANTS,
+		FRAME_SELECTED_NODES,
 		UNLINK_FROM_PARENT_FRAME,
 		SEPARATOR3, // ignore
 		SET_FRAME_TITLE,
@@ -486,6 +487,8 @@ class VisualShaderEditor : public ShaderEditor {
 	int selected_float_constant = -1;
 
 	void _convert_constants_to_parameters(bool p_vice_versa);
+	void _frame_selected_nodes_request();
+	void _frame_selected_nodes(int p_type, const List<int> &p_nodes);
 	void _detach_nodes_from_frame_request();
 	void _detach_nodes_from_frame(int p_type, const List<int> &p_nodes);
 	void _replace_node(VisualShader::Type p_type_id, int p_node_id, const StringName &p_from, const StringName &p_to);

@@ -4615,6 +4615,165 @@ void VisualShaderEditor::_detach_nodes_from_frame(int p_type, const List<int> &p
 	}
 }
 
+void VisualShaderEditor::_frame_selected_nodes_request() {
+	// Called from context menu.
+	List<int> to_frame_node_ids;
+	for (int i = 0; i < graph->get_child_count(); i++) {
+		GraphElement *gn = Object::cast_to<GraphElement>(graph->get_child(i));
+		if (gn) {
+			int id = String(gn->get_name()).to_int();
+			if (gn->is_selected()) {
+				to_frame_node_ids.push_back(id);
+			}
+		}
+	}
+	if (to_frame_node_ids.is_empty()) {
+		return;
+	}
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Frame Selected Visual Shader Nodes"));
+	_frame_selected_nodes(get_current_shader_type(), to_frame_node_ids);
+	undo_redo->commit_action();
+}
+
+void VisualShaderEditor::_frame_selected_nodes(int p_type, const List<int> &p_nodes) {
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	VisualShader::Type type = VisualShader::Type(p_type);
+	Ref<VisualShaderNode> vsnode;
+	VisualShaderNode *vsn = Object::cast_to<VisualShaderNode>(ClassDB::instantiate("VisualShaderNodeFrame"));
+	ERR_FAIL_NULL(vsn);
+	vsnode = Ref<VisualShaderNode>(vsn);
+
+	// Point2 position = graph->get_scroll_offset();
+	// if (saved_node_pos_dirty) {
+	// 	position += saved_node_pos;
+	// } else {
+	// 	position += graph->get_size() * 0.5;
+	// 	position /= EDSCALE;
+	// }
+	// position /= graph->get_zoom();
+	// saved_node_pos_dirty = false;
+
+	int new_frame_id = visual_shader->get_valid_node_id(type);
+	Point2 position;
+
+	undo_redo->add_do_method(visual_shader.ptr(), "add_node", type, vsnode, position, new_frame_id);
+	undo_redo->add_do_method(graph_plugin.ptr(), "add_node", type, new_frame_id, false, true);
+
+	for (int node_id : p_nodes) {
+		Ref<VisualShaderNode> node = visual_shader->get_node((VisualShader::Type)p_type, node_id);
+		if (!node.is_valid()) {
+			continue;
+		}
+		// int frame_id_1 = node->get_frame();
+		// if (frame_id_1 != -1) {
+
+		// }
+		undo_redo->add_do_method(visual_shader.ptr(), "attach_node_to_frame", p_type, node_id, new_frame_id);
+		undo_redo->add_do_method(graph_plugin.ptr(), "attach_node_to_frame", p_type, node_id, new_frame_id);
+		undo_redo->add_undo_method(graph_plugin.ptr(), "detach_node_from_frame", p_type, node_id);
+		undo_redo->add_undo_method(visual_shader.ptr(), "detach_node_from_frame", p_type, node_id);
+	}
+
+	undo_redo->add_undo_method(visual_shader.ptr(), "remove_node", type, new_frame_id);
+	undo_redo->add_undo_method(graph_plugin.ptr(), "remove_node", type, new_frame_id, false);
+}
+
+// void VisualShaderEditor::_frame_selected_nodes() {
+// 	// Called from context menu.
+// 	VisualShader::Type type = get_current_shader_type();
+// 	Ref<VisualShaderNode> vsnode;
+
+// 	VisualShaderNode *vsn = Object::cast_to<VisualShaderNode>(ClassDB::instantiate("VisualShaderNodeFrame"));
+// 	ERR_FAIL_NULL(vsn);
+// 	vsnode = Ref<VisualShaderNode>(vsn);
+
+// 	Point2 position = graph->get_scroll_offset();
+
+// 	if (saved_node_pos_dirty) {
+// 		position += saved_node_pos;
+// 	} else {
+// 		position += graph->get_size() * 0.5;
+// 		position /= EDSCALE;
+// 	}
+// 	position /= graph->get_zoom();
+// 	saved_node_pos_dirty = false;
+
+// 	int frame_id = visual_shader->get_valid_node_id(type);
+
+// 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+// 	undo_redo->create_action(TTR("Frame Visual Shader Nodes"));
+
+// 	undo_redo->add_do_method(visual_shader.ptr(), "add_node", type, vsnode, position, frame_id);
+// 	undo_redo->add_do_method(graph_plugin.ptr(), "add_node", type, frame_id, false, true);
+
+// 	for (int i = 0; i < graph->get_child_count(); i++) {
+// 		GraphElement *graph_element = Object::cast_to<GraphElement>(graph->get_child(i));
+// 		if (graph_element) {
+// 			int id = String(graph_element->get_name()).to_int();
+
+// 			Ref<VisualShaderNode> node = visual_shader->get_node(type, id);
+// 			int parent_frame_id = node->get_frame();
+
+// 			if (node.is_valid() && graph_element->is_selected()) {
+// 				undo_redo->add_do_method(visual_shader.ptr(), "attach_node_to_frame", type, id, frame_id);
+// 				undo_redo->add_do_method(graph_plugin.ptr(), "attach_node_to_frame", type, id, frame_id);
+// 				if (parent_frame_id != -1) {
+// 					undo_redo->add_undo_method(visual_shader.ptr(), "attach_node_to_frame", type, id, parent_frame_id);
+// 					undo_redo->add_undo_method(graph_plugin.ptr(), "attach_node_to_frame", type, id, parent_frame_id);
+// 				} else {
+// 				 	undo_redo->add_undo_method(visual_shader.ptr(), "detach_node_from_frame", type, id);
+// 				 	undo_redo->add_undo_method(graph_plugin.ptr(), "detach_node_from_frame", type, id);
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	undo_redo->add_undo_method(visual_shader.ptr(), "remove_node", type, frame_id);
+// 	undo_redo->add_undo_method(graph_plugin.ptr(), "remove_node", type, frame_id, false);
+
+// 	Ref<VisualShaderNodeFrame> frame = vsnode;
+// 	if (frame.is_valid()) {
+// 		frame->set_size(Size2(320 * EDSCALE, 180 * EDSCALE));
+// 	}
+
+// 	undo_redo->commit_action();
+
+// 	// // From drag
+// 	// for (const int node_id : nodes_link_to_frame_buffer) {
+// 	// 	VisualShader::Type type = visual_shader->get_shader_type();
+// 	// 	Ref<VisualShaderNode> vs_node = visual_shader->get_node(type, node_id);
+
+// 	// 	undo_redo->add_do_method(visual_shader.ptr(), "attach_node_to_frame", type, node_id, frame_node_id_to_link_to);
+// 	// 	undo_redo->add_do_method(graph_plugin.ptr(), "attach_node_to_frame", type, node_id, frame_node_id_to_link_to);
+// 	// 	undo_redo->add_undo_method(graph_plugin.ptr(), "detach_node_from_frame", type, node_id);
+// 	// 	undo_redo->add_undo_method(visual_shader.ptr(), "detach_node_from_frame", type, node_id);
+// 	// }
+
+// 	// From copy paste
+// 	// HashSet<int> nodes;
+// 	// for (int i = 0; i < graph->get_child_count(); i++) {
+// 	// 	GraphElement *graph_element = Object::cast_to<GraphElement>(graph->get_child(i));
+// 	// 	if (graph_element) {
+// 	// 		int id = String(graph_element->get_name()).to_int();
+
+// 	// 		Ref<VisualShaderNode> node = visual_shader->get_node(type, id);
+
+// 	// 		if (node.is_valid() && graph_element->is_selected()) {
+
+// 	// 			undo_redo->add_do_method(visual_shader.ptr(), "attach_node_to_frame", type, id, frame_id);
+// 	// 			undo_redo->add_do_method(graph_plugin.ptr(), "attach_node_to_frame", type, id, frame_id);
+// 	// 			undo_redo->add_undo_method(visual_shader.ptr(), "detach_node_from_frame", type, id);
+// 	// 			undo_redo->add_undo_method(graph_plugin.ptr(), "detach_node_from_frame", type, id);
+// 	// 		}
+// 	// 	}
+// 	// }
+
+// 	// undo_redo->commit_action();
+// 	// _member_cancel();
+// }
+
 void VisualShaderEditor::_detach_nodes_from_frame_request() {
 	// Called from context menu.
 	List<int> to_detach_node_ids;
@@ -4826,6 +4985,10 @@ void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> &p_event) {
 			if (temp != -1) {
 				popup_menu->remove_item(temp);
 			}
+			temp = popup_menu->get_item_index(NodeMenuOptions::FRAME_SELECTED_NODES);
+			if (temp != -1) {
+				popup_menu->remove_item(temp);
+			}
 			temp = popup_menu->get_item_index(NodeMenuOptions::SET_FRAME_TITLE);
 			if (temp != -1) {
 				popup_menu->remove_item(temp);
@@ -4841,6 +5004,10 @@ void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> &p_event) {
 			temp = popup_menu->get_item_index(NodeMenuOptions::ENABLE_FRAME_AUTOSHRINK);
 			if (temp != -1) {
 				popup_menu->remove_item(temp);
+			}
+
+			if (true) {
+				popup_menu->add_item(TTR("Frame Selected Nodes"), NodeMenuOptions::FRAME_SELECTED_NODES);
 			}
 
 			if (selected_constants.size() > 0 || selected_parameters.size() > 0) {
@@ -5915,6 +6082,9 @@ void VisualShaderEditor::_node_menu_id_pressed(int p_idx) {
 			break;
 		case NodeMenuOptions::CONVERT_PARAMETERS_TO_CONSTANTS:
 			_convert_constants_to_parameters(true);
+			break;
+		case NodeMenuOptions::FRAME_SELECTED_NODES:
+			_frame_selected_nodes_request();
 			break;
 		case NodeMenuOptions::UNLINK_FROM_PARENT_FRAME:
 			_detach_nodes_from_frame_request();
